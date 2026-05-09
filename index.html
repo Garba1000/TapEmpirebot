@@ -226,8 +226,6 @@ input,select{
   <button class="btn" id="withdrawBtn">Withdraw XP</button>
 </div>
 
-
-
 <script>
 const tg = window.Telegram?.WebApp;
 tg?.expand?.();
@@ -261,72 +259,153 @@ window.onload = () => {
   }
 };
 
-
 document.getElementById('tapBtn').onclick = () => {
   xp += 1;
   taps += 1;
   update();
 };
 
-
 document.getElementById('rewardBtn').onclick = async () => {
+
   if(!rewardAd) return alert('Ad not ready');
 
   try{
+
     const res = await rewardAd.show();
 
     if(res?.done){
+
       xp += 10;
+
       update();
+
       alert('Reward Added');
     }
+
   }catch(e){}
 };
 
-
 document.getElementById('taskBtn').onclick = async () => {
+
   if(!taskAd) return alert('Task ad not ready');
 
   try{
+
     const res = await taskAd.show();
 
     if(res?.done){
+
       xp += 100;
+
       update();
+
       alert('Task Completed');
     }
+
   }catch(e){}
 };
 
+// RANDOM DAILY TASK-BLOCK BONUS
+const DAILY_BLOCKS = [
+  "task-12678",
+  "task-56974",
+  "task-23975",
+  "task-45784"
+];
+
+function getRandomDailyBlock(){
+  return DAILY_BLOCKS[
+    Math.floor(Math.random() * DAILY_BLOCKS.length)
+  ];
+}
 
 document.getElementById('dailyBtn').onclick = () => {
+
   let now = Date.now();
 
   if(now - lastDaily < 86400000){
     return alert('Come back tomorrow');
   }
 
-  xp += 50;
-  update();
+  const oldTask = document.getElementById("dailyTaskBlock");
 
-  lastDaily = now;
-  localStorage.setItem('daily', now);
+  if(oldTask){
+    oldTask.remove();
+  }
 
-  alert('Daily Reward Claimed');
+  const task = document.createElement("adsgram-task");
+
+  task.id = "dailyTaskBlock";
+
+  task.setAttribute(
+    "data-block-id",
+    getRandomDailyBlock()
+  );
+
+  task.style.display = "block";
+  task.style.marginTop = "15px";
+
+  document
+    .getElementById('dailyBtn')
+    .parentNode
+    .appendChild(task);
+
+  task.addEventListener("reward",()=>{
+
+    xp += 900;
+
+    update();
+
+    lastDaily = now;
+
+    localStorage.setItem('daily', now);
+
+    const msg = document.createElement("div");
+
+    msg.innerHTML = "🎉 You're successful receive daily bonus 900 XP";
+
+    msg.style.position = "fixed";
+    msg.style.top = "20px";
+    msg.style.left = "50%";
+    msg.style.transform = "translateX(-50%)";
+    msg.style.background = "#00c853";
+    msg.style.color = "#fff";
+    msg.style.padding = "16px 20px";
+    msg.style.borderRadius = "14px";
+    msg.style.zIndex = "99999";
+    msg.style.fontWeight = "bold";
+    msg.style.boxShadow = "0 0 20px rgba(0,0,0,0.5)";
+
+    document.body.appendChild(msg);
+
+    setTimeout(()=>{
+      msg.remove();
+    },30000);
+
+    task.remove();
+  });
+
+  if(typeof task.load === "function"){
+    task.load();
+  }
 };
 
-
 document.getElementById('copyBtn').onclick = () => {
+
   let input = document.getElementById('refInput');
+
   input.select();
+
   document.execCommand('copy');
 
   alert('Referral Link Copied');
 };
 
-
 document.getElementById('withdrawBtn').onclick = () => {
-  let amount = parseInt(document.getElementById('amount').value);
+
+  let amount = parseInt(
+    document.getElementById('amount').value
+  );
 
   if(!amount || amount < 10000){
     return alert('Minimum withdrawal is 10,000 XP');
@@ -337,13 +416,11 @@ document.getElementById('withdrawBtn').onclick = () => {
   }
 
   xp -= amount;
+
   update();
 
   alert('Withdraw Request Sent');
 };
-
-
-
 </script>
 
 </body>
