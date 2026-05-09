@@ -3,380 +3,364 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Scratch & Earn</title>
-
-<style>
-body {
-  font-family: Arial, sans-serif;
-  background: #000;
-  color: #fff;
-  margin: 0;
-  padding: 20px;
-}
-h1, h2 { margin-bottom: 10px; }
-.section { margin-top: 20px; padding: 15px; background: #111; border-radius: 10px; }
-.btn {
-  display: inline-block;
-  margin-top: 10px;
-  padding: 10px 15px;
-  border-radius: 8px;
-  background: #00c853;
-  color: #fff;
-  font-weight: bold;
-  cursor: pointer;
-  text-align: center;
-}
-.btn:active { transform: scale(0.95); }
-.hidden { display: none; }
-input, select {
-  padding: 8px; margin: 5px 0; width: 100%; border-radius: 5px; border: none;
-}
-#joinPopup {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.95);
-  display: none;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-  text-align: center;
-  padding: 20px;
-  z-index: 9999;
-}
-#joinPopup button {
-  background: #00c853;
-  color: #fff;
-  padding: 12px 20px;
-  margin-top: 20px;
-  border: none;
-  border-radius: 10px;
-  font-weight: bold;
-  font-size: 18px;
-  cursor: pointer;
-}
-canvas { border-radius: 10px; display: block; margin: 10px auto; }
-
-/* Floating success popup */
-#claimSuccessMsg {
-  position: absolute;
-  top: 50px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #00c853;
-  color: #fff;
-  padding: 15px 20px;
-  border-radius: 10px;
-  font-weight: bold;
-  font-size: 16px;
-  display: none;
-  z-index: 9999;
-  text-align: center;
-}
-</style>
+<title>Tap & Earn X</title>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
-</head>
 
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+body{
+  background:#07111f;
+  color:white;
+  font-family:Arial, sans-serif;
+  padding:18px;
+}
+
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:20px;
+}
+
+.logo{
+  font-size:26px;
+  font-weight:bold;
+  color:#00e0ff;
+}
+
+.level{
+  background:#132033;
+  padding:8px 14px;
+  border-radius:30px;
+  font-size:14px;
+}
+
+.balance-box{
+  background:linear-gradient(135deg,#00e0ff,#0077ff);
+  border-radius:24px;
+  padding:30px 20px;
+  text-align:center;
+  color:#fff;
+  margin-bottom:20px;
+}
+
+.balance-box h2{
+  font-size:50px;
+  margin-top:10px;
+}
+
+.progress{
+  width:100%;
+  height:10px;
+  background:rgba(255,255,255,0.2);
+  border-radius:30px;
+  overflow:hidden;
+  margin-top:15px;
+}
+
+.progress div{
+  width:0%;
+  height:100%;
+  background:#fff;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+  margin-bottom:20px;
+}
+
+.card{
+  background:#101b2d;
+  padding:18px;
+  border-radius:20px;
+  border:1px solid #1f2d44;
+}
+
+.card h3{
+  font-size:16px;
+  margin-bottom:10px;
+}
+
+.card p{
+  font-size:13px;
+  opacity:0.8;
+}
+
+.btn{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:14px;
+  margin-top:14px;
+  background:linear-gradient(45deg,#00e0ff,#0077ff);
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+.btn:active{
+  transform:scale(0.96);
+}
+
+.section{
+  background:#101b2d;
+  padding:18px;
+  border-radius:20px;
+  margin-bottom:18px;
+  border:1px solid #1f2d44;
+}
+
+.section h2{
+  margin-bottom:12px;
+}
+
+input,select{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:12px;
+  background:#18263b;
+  color:white;
+  margin-top:10px;
+}
+
+.popup{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.9);
+  display:none;
+  justify-content:center;
+  align-items:center;
+  z-index:999;
+}
+
+.popup-box{
+  background:#101b2d;
+  padding:30px;
+  border-radius:22px;
+  width:90%;
+  max-width:350px;
+  text-align:center;
+}
+</style>
+</head>
 <body>
 
-<div id="joinPopup">
-  <h2>📢 Join Our Telegram Channel to Continue</h2>
-  <p>You must join before using the app.</p>
-  <button onclick="joinChannelClicked()">👉 Join @earnzoners</button>
+<div class="header">
+  <div class="logo">⚡ Tap & Earn X</div>
+  <div class="level">Level <span id="level">1</span></div>
 </div>
 
-<div id="mainPage" style="display:none;">
+<div class="balance-box">
+  <p>Total XP</p>
+  <h2 id="points">0</h2>
 
-<h1>⚡ Scratch & Earn Points</h1>
-<p>Points: <span id="points">0</span> | Energy: <span id="energy">50</span></p>
-
-<div class="section">
-  <canvas id="scratchCanvas" width="300" height="200"></canvas>
-  <p id="scratchMsg">🖐️ Start scratching...</p>
-  <div class="btn hidden" id="claimBtn">🎁 Claim 3000 Points</div>
+  <div class="progress">
+    <div id="bar"></div>
+  </div>
 </div>
 
-<!-- Floating success popup -->
-<div id="claimSuccessMsg">
-  🎉 You're successful! Claim 3000 points welcome bonus from Scratch.
-</div>
+<div class="grid">
+  <div class="card">
+    <h3>👆 Total Taps</h3>
+    <p id="taps">0</p>
+  </div>
 
-<div class="section">
-<h2>📋 Tasks</h2>
-<div id="taskIntro">
-  <div class="btn" id="startTasksBtn">Start Tasks</div>
-</div>
-<div id="adsgram-container" class="hidden"></div>
-<div id="nextTaskBtnContainer" class="hidden">
-  <div class="btn" id="nextTaskBtn">➡️ Next Task</div>
-</div>
-<div id="finalTaskBtnContainer" class="hidden">
-  <div class="btn" id="finalTaskBtn">🏁 Finish Tasks</div>
-</div>
+  <div class="card">
+    <h3>🏆 Rank</h3>
+    <p>Starter</p>
+  </div>
 </div>
 
 <div class="section">
-<h2>💳 Withdraw</h2>
-<p><b>Minimum withdrawal is 250,000 points (~$59)</b></p>
-<select id="method">
-<option value="Litecoin">Litecoin</option>
-<option value="USDT">USDT</option>
-<option value="Payeer">Payeer</option>
-<option value="Bank">Bank Account</option>
-</select>
-<input type="text" id="address" placeholder="Enter wallet or account"/>
-<input type="number" id="amount" placeholder="Minimum 250000"/>
-<div class="btn" id="withdrawBtn">Request Withdraw</div>
+  <h2>🎮 Tap System</h2>
+  <button class="btn" id="tapBtn">Tap +1 XP</button>
 </div>
 
+<div class="section">
+  <h2>📺 Reward Ad</h2>
+  <button class="btn" id="rewardBtn">Watch Ad +10 XP</button>
+</div>
+
+<div class="section">
+  <h2>🎯 Task Center</h2>
+  <button class="btn" id="taskBtn">Complete Task +100 XP</button>
+</div>
+
+<div class="section">
+  <h2>🎁 Daily Reward</h2>
+  <button class="btn" id="dailyBtn">Claim Daily Reward</button>
+</div>
+
+<div class="section">
+  <h2>👥 Referral</h2>
+  <input id="refInput" readonly value="https://t.me/YOUR_BOT?start=12345">
+  <button class="btn" id="copyBtn">Copy Referral Link</button>
+</div>
+
+<div class="section">
+  <h2>💳 Withdraw</h2>
+
+  <select id="method">
+    <option>USDT</option>
+    <option>Litecoin</option>
+    <option>Payeer</option>
+    <option>Bank</option>
+  </select>
+
+  <input id="wallet" placeholder="Wallet Address">
+  <input id="amount" type="number" placeholder="Amount">
+
+  <button class="btn" id="withdrawBtn">Withdraw XP</button>
+</div>
+
+<div class="popup" id="popup">
+  <div class="popup-box">
+    <h2>Join Our Channel</h2>
+    <p style="margin-top:10px">Join and earn bonus XP instantly</p>
+    <button class="btn" id="joinBtn">Join Now +5 XP</button>
+  </div>
 </div>
 
 <script>
-const webApp = Telegram.WebApp;
-let points = parseInt(localStorage.getItem("points") || "0");
-let energy = parseInt(localStorage.getItem("energy") || "50");
+const tg = window.Telegram?.WebApp;
+tg?.expand?.();
 
-function updateUI(){
-  document.getElementById("points").innerText = points;
-  document.getElementById("energy").innerText = energy;
-}
-function saveState(){
-  localStorage.setItem("points", points);
-  localStorage.setItem("energy", energy);
+let xp = parseInt(localStorage.getItem('xp') || '0');
+let taps = parseInt(localStorage.getItem('taps') || '0');
+let lastDaily = parseInt(localStorage.getItem('daily') || '0');
+
+function update(){
+  document.getElementById('points').innerText = xp;
+  document.getElementById('taps').innerText = taps;
+
+  let level = Math.floor(xp / 500) + 1;
+  document.getElementById('level').innerText = level;
+
+  let progress = (xp % 500) / 500 * 100;
+  document.getElementById('bar').style.width = progress + '%';
+
+  localStorage.setItem('xp', xp);
+  localStorage.setItem('taps', taps);
 }
 
-/* JOIN */
-function joinChannelClicked(){
-  window.open("https://t.me/crytocurrentupdate","_blank");
-  document.getElementById("joinPopup").style.display="none";
-  document.getElementById("mainPage").style.display="block";
-}
+update();
 
-function showJoinPopupAfterAds(){
+let rewardAd, taskAd;
+
+window.onload = () => {
+  if(typeof Adsgram !== 'undefined'){
+    rewardAd = Adsgram.init({ blockId:'29216' });
+    taskAd = Adsgram.init({ blockId:'29217' });
+  }
+
+  setTimeout(() => {
+    document.getElementById('popup').style.display = 'flex';
+  },1500);
+};
+
+
+document.getElementById('tapBtn').onclick = () => {
+  xp += 1;
+  taps += 1;
+  update();
+};
+
+
+document.getElementById('rewardBtn').onclick = async () => {
+  if(!rewardAd) return alert('Ad not ready');
+
   try{
-    const rewardAd = window.Adsgram.init({blockId:"23731"});
-    rewardAd.show().finally(()=>{
-      document.getElementById("joinPopup").style.display="flex";
-    });
-  }catch(e){
-    document.getElementById("joinPopup").style.display="flex";
-  }
-}
+    const res = await rewardAd.show();
 
-/* ================= SCRATCH SYSTEM ================= */
-const rewardBlocks = ["23731","23732","23734"];
-let scratchCount = 0;
-let claimAvailable = false;
-let rewardCooldown = false;
-let scratchTimerStarted = false;
-let adsShownBeforeClaim = 0;
-
-const canvas = document.getElementById("scratchCanvas");
-const ctx = canvas.getContext("2d");
-const claimBtn = document.getElementById("claimBtn");
-const scratchMsg = document.getElementById("scratchMsg");
-
-ctx.fillStyle = "#888";
-ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-let scratching = false;
-
-function startScratch(){
-  if(rewardCooldown) return;
-  scratching = true;
-
-  if(!scratchTimerStarted){
-    scratchTimerStarted = true;
-    scratchMsg.innerText = "⏳ Claim available in 4 minutes";
-
-    // Automatically preload and show Adsgram 6 times
-    preloadAdsBeforeClaim();
-
-    setTimeout(()=>{
-      claimAvailable = true;
-      claimBtn.classList.remove("hidden");
-      scratchMsg.innerText = "🎉 You can now claim 3000 points!";
-    },240000); // 4 minutes
-  }
-}
-
-function preloadAdsBeforeClaim(){
-  adsShownBeforeClaim = 0;
-  function showAdSequentially(){
-    if(adsShownBeforeClaim >= 6) return;
-    try{
-      const randomBlock = rewardBlocks[Math.floor(Math.random()*rewardBlocks.length)];
-      const rewardAd = window.Adsgram.init({blockId: randomBlock});
-      rewardAd.show().finally(()=>{
-        adsShownBeforeClaim++;
-        setTimeout(showAdSequentially, 3000);
-      });
-    }catch(e){
-      adsShownBeforeClaim++;
-      setTimeout(showAdSequentially, 3000);
+    if(res?.done){
+      xp += 10;
+      update();
+      alert('Reward Added');
     }
-  }
-  showAdSequentially();
-}
+  }catch(e){}
+};
 
-function stopScratch(){ scratching = false; }
 
-function scratch(e){
-  if(!scratching || rewardCooldown) return;
-  const rect = canvas.getBoundingClientRect();
-  const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
-  const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
-  ctx.clearRect(x-15, y-15, 30, 30);
-  scratchCount++;
-}
+document.getElementById('taskBtn').onclick = async () => {
+  if(!taskAd) return alert('Task ad not ready');
 
-canvas.addEventListener("mousedown", startScratch);
-canvas.addEventListener("mouseup", stopScratch);
-canvas.addEventListener("mousemove", scratch);
-canvas.addEventListener("touchstart", startScratch);
-canvas.addEventListener("touchend", stopScratch);
-canvas.addEventListener("touchmove", scratch);
-
-/* ================= CLAIM 3000 WITH RANDOM TASK-BLOCK ================= */
-const scratchClaimTasks = ["task-23774","task-23767","task-23768","task-23774","task-23775"];
-
-claimBtn.addEventListener("click", ()=>{
-  if(!claimAvailable) return;
-
-  // Pick random task-block for claim
-  const randomTaskId = scratchClaimTasks[Math.floor(Math.random()*scratchClaimTasks.length)];
-  const container = document.getElementById("adsgram-container");
-  container.innerHTML = `<adsgram-task class="task" data-block-id="${randomTaskId}"></adsgram-task>`;
-  container.classList.remove("hidden");
-  claimBtn.classList.add("hidden"); // hide claim until task complete
-
-  const task = container.querySelector(".task");
-  task.addEventListener("reward", ()=>{
-    points += 3000;  // reward 3000 points
-    saveState();
-    updateUI();
-
-    // Show floating popup every time
-    const popup = document.getElementById("claimSuccessMsg");
-    popup.style.display = "block";
-
-    setTimeout(()=>{
-      popup.style.display = "none";
-    }, 30000);
-
-    // Reset scratch system after claim
-    resetScratch();
-    container.classList.add("hidden");
-    rewardCooldown = false;
-  });
-});
-
-function resetScratch(){
-  scratchCount = 0;
-  claimAvailable = false;
-  scratchTimerStarted = false;
-  adsShownBeforeClaim = 0;
-  claimBtn.classList.add("hidden");
-  scratchMsg.innerText = "🖐️ Start scratching...";
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.fillStyle="#888";
-  ctx.fillRect(0,0,canvas.width,canvas.height);
-}
-
-/* ================= TASK SYSTEM ================= */
-let currentTaskIndex=0;
-const taskIds=["task-23767","task-23768","task-23769","task-23774","task-23775"];
-
-function loadTask(blockId){
-  const container=document.getElementById("adsgram-container");
-  container.innerHTML=`<adsgram-task class="task" data-block-id="${blockId}"></adsgram-task>`;
-  container.classList.remove("hidden");
-  document.getElementById("taskIntro").classList.add("hidden");
-
-  const task=container.querySelector(".task");
-  task.addEventListener("reward",(e)=>{
-    energy += 2; // reward ONLY energy
-    saveState();
-    updateUI();
-
-    if(currentTaskIndex<taskIds.length-1){
-      document.getElementById("nextTaskBtnContainer").classList.remove("hidden");
-    }else{
-      document.getElementById("finalTaskBtnContainer").classList.remove("hidden");
-    }
-  });
-}
-
-document.getElementById("startTasksBtn").addEventListener("click",()=>{
-  currentTaskIndex=0;
-  loadTask(taskIds[currentTaskIndex]);
-});
-
-document.getElementById("nextTaskBtn").addEventListener("click",()=>{
-  currentTaskIndex++;
-  document.getElementById("nextTaskBtnContainer").classList.add("hidden");
-  loadTask(taskIds[currentTaskIndex]);
-});
-
-document.getElementById("finalTaskBtn").addEventListener("click",()=>{
   try{
-    const rewardAd=window.Adsgram.init({blockId:"23731"}); // optional final ad
-    rewardAd.show().then(res=>{
-      if(res.done){
-        energy+=2;
-        saveState();
-        updateUI();
-      }
-      document.getElementById("taskIntro").classList.remove("hidden");
-      document.getElementById("adsgram-container").classList.add("hidden");
-      document.getElementById("finalTaskBtnContainer").classList.add("hidden");
-      currentTaskIndex=0;
-    });
-  }catch(e){
-    document.getElementById("taskIntro").classList.remove("hidden");
-    document.getElementById("adsgram-container").classList.add("hidden");
-    document.getElementById("finalTaskBtnContainer").classList.add("hidden");
-    currentTaskIndex=0;
-  }
-});
+    const res = await taskAd.show();
 
-/* ================= WITHDRAW ================= */
-document.getElementById("withdrawBtn").addEventListener("click",()=>{
-  const method=document.getElementById("method").value;
-  const address=document.getElementById("address").value.trim();
-  const amount=parseInt(document.getElementById("amount").value);
+    if(res?.done){
+      xp += 100;
+      update();
+      alert('Task Completed');
+    }
+  }catch(e){}
+};
 
-  if(isNaN(amount)||amount<250000){
-    alert("Minimum withdrawal is 250,000 points (~$59)");
-    return;
-  }
-  if(points<amount){
-    alert("Not enough points");
-    return;
+
+document.getElementById('dailyBtn').onclick = () => {
+  let now = Date.now();
+
+  if(now - lastDaily < 86400000){
+    return alert('Come back tomorrow');
   }
 
-  const user=webApp.initDataUnsafe.user||{};
-  const msg=JSON.stringify({
-    type:"withdraw_request",
-    user_id:user.id,
-    username:user.username||"No username",
-    amount,method,address
-  });
-  Telegram.WebApp.sendData(msg);
+  xp += 500;
+  update();
 
-  points-=amount;
-  saveState();
-  updateUI();
-  alert("✅ Withdrawal request sent!");
-});
+  lastDaily = now;
+  localStorage.setItem('daily', now);
 
-/* LOAD */
-document.addEventListener("DOMContentLoaded",()=>{
-  updateUI();
-  showJoinPopupAfterAds();
-});
+  alert('Daily Reward Claimed');
+};
+
+
+document.getElementById('copyBtn').onclick = () => {
+  let input = document.getElementById('refInput');
+  input.select();
+  document.execCommand('copy');
+
+  alert('Referral Link Copied');
+};
+
+
+document.getElementById('withdrawBtn').onclick = () => {
+  let amount = parseInt(document.getElementById('amount').value);
+
+  if(!amount || amount < 10000){
+    return alert('Minimum withdrawal is 10,000 XP');
+  }
+
+  if(xp < amount){
+    return alert('Not enough XP');
+  }
+
+  xp -= amount;
+  update();
+
+  alert('Withdraw Request Sent');
+};
+
+
+document.getElementById('joinBtn').onclick = () => {
+  xp += 5;
+  update();
+
+  document.getElementById('popup').style.display = 'none';
+
+  window.open('https://t.me/CashGyana','_blank');
+};
 </script>
 
 </body>
