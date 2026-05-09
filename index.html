@@ -226,13 +226,7 @@ input,select{
   <button class="btn" id="withdrawBtn">Withdraw XP</button>
 </div>
 
-<div class="popup" id="popup">
-  <div class="popup-box">
-    <h2>Join Our Channel</h2>
-    <p style="margin-top:10px">Join and earn bonus XP instantly</p>
-    <button class="btn" id="joinBtn">Join Now +5 XP</button>
-  </div>
-</div>
+
 
 <script>
 const tg = window.Telegram?.WebApp;
@@ -265,10 +259,6 @@ window.onload = () => {
     rewardAd = Adsgram.init({ blockId:'29216' });
     taskAd = Adsgram.init({ blockId:'29217' });
   }
-
-  setTimeout(() => {
-    document.getElementById('popup').style.display = 'flex';
-  },1500);
 };
 
 
@@ -353,14 +343,7 @@ document.getElementById('withdrawBtn').onclick = () => {
 };
 
 
-document.getElementById('joinBtn').onclick = () => {
-  xp += 5;
-  update();
 
-  document.getElementById('popup').style.display = 'none';
-
-  window.open('https://t.me/CashGyana','_blank');
-};
 </script>
 
 </body>
