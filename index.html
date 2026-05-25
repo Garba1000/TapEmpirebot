@@ -310,88 +310,77 @@ if(telegramUser){
 
 }
 
-/* SAVE USER */
+/* SAVE USER + REFERRAL */
 async function saveUser(){
 
   if(!telegramUser) return;
 
-  await supabaseClient
-  .from('users')
-  .upsert({
-    telegram_id:
-      telegramUser.id.toString(),
+  const userId =
+  telegramUser.id.toString();
 
-    username:
-      telegramUser.username || "User"
-  });
+  const username =
+  telegramUser.username || "User";
 
-}
-
-saveUser();
-
-/* HANDLE REFERRAL */
-async function handleReferral(){
-
-  if(!telegramUser) return;
-
-  if(!startParam) return;
-
-  if(startParam === telegramUser.id.toString())
-    return;
-
-  const { data:userData } =
+  const { data:existingUser } =
   await supabaseClient
   .from('users')
   .select('*')
-  .eq(
-    'telegram_id',
-    telegramUser.id.toString()
-  )
+  .eq('telegram_id', userId)
   .single();
 
-  if(userData?.referred_by) return;
-
-  await supabaseClient
-  .from('users')
-  .update({
-    referred_by:startParam
-  })
-  .eq(
-    'telegram_id',
-    telegramUser.id.toString()
-  );
-
-  const { data:refUser } =
-  await supabaseClient
-  .from('users')
-  .select('referrals,balance')
-  .eq(
-    'telegram_id',
-    startParam
-  )
-  .single();
-
-  if(refUser){
+  if(!existingUser){
 
     await supabaseClient
     .from('users')
-    .update({
-      referrals:
-        (refUser.referrals || 0) + 1,
+    .insert({
+      telegram_id:userId,
+      username:username,
+      referred_by:startParam || null
+    });
 
-      balance:
-        Number(refUser.balance || 0) + 50
-    })
-    .eq(
-      'telegram_id',
-      startParam
-    );
+    if(
+      startParam &&
+      startParam !== userId
+    ){
+
+      const { data:refUser } =
+      await supabaseClient
+      .from('users')
+      .select('referrals,balance')
+      .eq(
+        'telegram_id',
+        startParam
+      )
+      .single();
+
+      if(refUser){
+
+        await supabaseClient
+        .from('users')
+        .update({
+          referrals:
+            Number(
+              refUser.referrals || 0
+            ) + 1,
+
+          balance:
+            Number(
+              refUser.balance || 0
+            ) + 50
+        })
+        .eq(
+          'telegram_id',
+          startParam
+        );
+
+      }
+    }
 
   }
 
 }
 
-handleReferral();
+saveUser();
 
 /* LOAD REFERRALS */
 async function loadReferralCount(){
@@ -566,8 +555,6 @@ document.getElementById('rewardBtn')
 
       alert('Reward Added');
 
-      /* 5% REF BONUS */
-
       if(telegramUser){
 
         const { data:userData } =
@@ -681,7 +668,7 @@ document.getElementById('dailyBtn')
 
   task.addEventListener(
     "reward",
-    () => {
+    async () => {
 
       dailyProgress++;
 
@@ -690,6 +677,49 @@ document.getElementById('dailyBtn')
       if(dailyProgress === 4){
 
         xp += 900;
+
+        if(telegramUser){
+
+          const { data:userData } =
+          await supabaseClient
+          .from('users')
+          .select('referred_by')
+          .eq(
+            'telegram_id',
+            telegramUser.id.toString()
+          )
+          .single();
+
+          if(userData?.referred_by){
+
+            const { data:refUser } =
+            await supabaseClient
+            .from('users')
+            .select('balance')
+            .eq(
+              'telegram_id',
+              userData.referred_by
+            )
+            .single();
+
+            if(refUser){
+
+              await supabaseClient
+              .from('users')
+              .update({
+                balance:
+                  Number(
+                    refUser.balance || 0
+                  ) + 45
+              })
+              .eq(
+                'telegram_id',
+                userData.referred_by
+              );
+
+            }
+          }
+        }
 
         lastDaily = now;
 
