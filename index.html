@@ -288,7 +288,7 @@ const SUPABASE_URL =
 "https://keeyfdmvkahjinxvlubg.supabase.co";
 
 const SUPABASE_KEY =
-"sb_publishable_vaUwnoijFtYC09XsUzTNpQ_8JW8P3ht";
+"YOUR_SUPABASE_KEY";
 
 const supabaseClient =
 supabase.createClient(
@@ -296,20 +296,31 @@ supabase.createClient(
   SUPABASE_KEY
 );
 
-/* FIXED TELEGRAM USER */
+/* TELEGRAM USER */
 const telegramUser =
 window.Telegram.WebApp.initDataUnsafe.user;
 
 console.log(telegramUser);
 
+/* FIXED REFERRAL PARAM */
+const urlParams =
+new URLSearchParams(
+  window.location.search
+);
+
 const startParam =
-tg?.initDataUnsafe?.start_param;
+urlParams.get("start");
+
+console.log(
+  "START PARAM:",
+  startParam
+);
 
 /* REF LINK */
 if(telegramUser){
 
   document.getElementById('refInput').value =
-  `https://t.me/Profitvablebot?start=${telegramUser.id}`;
+  `https://t.me/TapEmpirebot?start=${telegramUser.id}`;
 
 }
 
@@ -380,22 +391,29 @@ async function saveUser(){
 
           console.log("UPDATING REFERRAL");
 
+          const newRefs =
+          Number(
+            refUser.referrals || 0
+          ) + 1;
+
+          const newBalance =
+          Number(
+            refUser.balance || 0
+          ) + 50;
+
           await supabaseClient
           .from('users')
           .update({
-            referrals:
-              Number(
-                refUser.referrals || 0
-              ) + 1,
-
-            balance:
-              Number(
-                refUser.balance || 0
-              ) + 50
+            referrals:newRefs,
+            balance:newBalance
           })
           .eq(
             'telegram_id',
             startParam
+          );
+
+          console.log(
+            "REFERRAL UPDATED"
           );
 
         }else{
