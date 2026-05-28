@@ -288,7 +288,7 @@ const SUPABASE_URL =
 "https://keeyfdmvkahjinxvlubg.supabase.co";
 
 const SUPABASE_KEY =
-"sb_publishable_vaUwnoijFtYC09XsUzTNpQ_8JW8P3ht";
+"YOUR_SUPABASE_ANON_KEY";
 
 const supabaseClient =
 supabase.createClient(
@@ -300,16 +300,10 @@ supabase.createClient(
 const telegramUser =
 window.Telegram.WebApp.initDataUnsafe.user;
 
-console.log(telegramUser);
-
-/* FIXED REFERRAL PARAM */
-const urlParams =
-new URLSearchParams(
-  window.location.search
-);
-
+/* START PARAM */
 const startParam =
-urlParams.get("start");
+window.Telegram.WebApp
+.initDataUnsafe.start_param;
 
 console.log(
   "START PARAM:",
@@ -319,20 +313,17 @@ console.log(
 /* REF LINK */
 if(telegramUser){
 
-  document.getElementById('refInput').value =
+  document.getElementById(
+    'refInput'
+  ).value =
   `https://t.me/Profitvablebot?start=${telegramUser.id}`;
 
 }
 
-/* SAVE USER + REFERRAL */
+/* SAVE USER */
 async function saveUser(){
 
-  if(!telegramUser){
-
-    console.log("NO TELEGRAM USER");
-
-    return;
-  }
+  if(!telegramUser) return;
 
   try{
 
@@ -342,40 +333,41 @@ async function saveUser(){
     const username =
     telegramUser.username || "User";
 
-    console.log("CHECKING USER");
-
     const { data:existingUser } =
     await supabaseClient
     .from('users')
     .select('*')
-    .eq('telegram_id', userId)
+    .eq(
+      'telegram_id',
+      userId
+    )
     .maybeSingle();
 
     if(!existingUser){
 
-      console.log("CREATING USER");
+      const referredBy =
+      (
+        startParam &&
+        startParam !== userId
+      )
+      ? startParam
+      : null;
 
       await supabaseClient
       .from('users')
       .insert({
+
         telegram_id:userId,
         username:username,
         balance:0,
         referrals:0,
-        referred_by:
-          startParam || null
+        referred_by:referredBy
+
       });
 
-      console.log("USER SAVED");
+      /* REFERRAL COUNT */
 
-      /* REFERRAL */
-
-      if(
-        startParam &&
-        startParam !== userId
-      ){
-
-        console.log("REFERRAL FOUND");
+      if(referredBy){
 
         const { data:refUser } =
         await supabaseClient
@@ -383,52 +375,29 @@ async function saveUser(){
         .select('*')
         .eq(
           'telegram_id',
-          startParam
+          referredBy
         )
         .maybeSingle();
 
         if(refUser){
-
-          console.log("UPDATING REFERRAL");
 
           const newRefs =
           Number(
             refUser.referrals || 0
           ) + 1;
 
-          const newBalance =
-          Number(
-            refUser.balance || 0
-          ) + 50;
-
           await supabaseClient
           .from('users')
           .update({
-            referrals:newRefs,
-            balance:newBalance
+            referrals:newRefs
           })
           .eq(
             'telegram_id',
-            startParam
-          );
-
-          console.log(
-            "REFERRAL UPDATED"
-          );
-
-        }else{
-
-          console.log(
-            "REF USER NOT FOUND"
+            referredBy
           );
 
         }
       }
-
-    }else{
-
-      console.log("USER EXISTS");
-
     }
 
   }catch(err){
@@ -440,6 +409,72 @@ async function saveUser(){
 }
 
 saveUser();
+
+/* REFERRAL COMMISSION */
+async function giveReferralCommission(amount){
+
+  if(!telegramUser) return;
+
+  try{
+
+    const userId =
+    telegramUser.id.toString();
+
+    const { data:userData } =
+    await supabaseClient
+    .from('users')
+    .select('referred_by')
+    .eq(
+      'telegram_id',
+      userId
+    )
+    .maybeSingle();
+
+    if(
+      !userData ||
+      !userData.referred_by
+    ) return;
+
+    const referrerId =
+    userData.referred_by;
+
+    const bonus =
+    Math.floor(amount * 0.05);
+
+    const { data:referrer } =
+    await supabaseClient
+    .from('users')
+    .select('balance')
+    .eq(
+      'telegram_id',
+      referrerId
+    )
+    .maybeSingle();
+
+    if(!referrer) return;
+
+    const newBalance =
+    Number(
+      referrer.balance || 0
+    ) + bonus;
+
+    await supabaseClient
+    .from('users')
+    .update({
+      balance:newBalance
+    })
+    .eq(
+      'telegram_id',
+      referrerId
+    );
+
+  }catch(err){
+
+    console.log(err);
+
+  }
+
+}
 
 /* LOAD REFERRALS */
 async function loadReferralCount(){
@@ -456,8 +491,9 @@ async function loadReferralCount(){
   )
   .maybeSingle();
 
-  document.getElementById('refCount')
-  .innerText =
+  document.getElementById(
+    'refCount'
+  ).innerText =
   data?.referrals || 0;
 
 }
@@ -481,7 +517,9 @@ parseInt(
 
 let dailyProgress =
 parseInt(
-  localStorage.getItem('dailyProgress') || 0
+  localStorage.getItem(
+    'dailyProgress'
+  ) || 0
 );
 
 const DAILY_BLOCKS = [
@@ -505,28 +543,38 @@ function updateDailyBar(){
 
 function update(){
 
-  document.getElementById('points')
-  .innerText = xp;
+  document.getElementById(
+    'points'
+  ).innerText = xp;
 
-  document.getElementById('taps')
-  .innerText = taps;
+  document.getElementById(
+    'taps'
+  ).innerText = taps;
 
   let level =
   Math.floor(xp / 500) + 1;
 
-  document.getElementById('level')
-  .innerText = level;
+  document.getElementById(
+    'level'
+  ).innerText = level;
 
   let progress =
   (xp % 500) / 500 * 100;
 
-  document.getElementById('bar')
-  .style.width =
+  document.getElementById(
+    'bar'
+  ).style.width =
   progress + '%';
 
-  localStorage.setItem('xp', xp);
+  localStorage.setItem(
+    'xp',
+    xp
+  );
 
-  localStorage.setItem('taps', taps);
+  localStorage.setItem(
+    'taps',
+    taps
+  );
 
   localStorage.setItem(
     'dailyProgress',
@@ -584,8 +632,9 @@ window.onload = () => {
   }
 };
 
-document.getElementById('tapBtn')
-.onclick = () => {
+document.getElementById(
+  'tapBtn'
+).onclick = () => {
 
   xp += 1;
 
@@ -595,8 +644,9 @@ document.getElementById('tapBtn')
 
 };
 
-document.getElementById('rewardBtn')
-.onclick = async () => {
+document.getElementById(
+  'rewardBtn'
+).onclick = async () => {
 
   if(!rewardAd)
     return alert('Ad not ready');
@@ -610,6 +660,8 @@ document.getElementById('rewardBtn')
 
       xp += 10;
 
+      await giveReferralCommission(10);
+
       update();
 
       alert('Reward Added');
@@ -619,8 +671,9 @@ document.getElementById('rewardBtn')
   }catch(e){}
 };
 
-document.getElementById('taskBtn')
-.onclick = async () => {
+document.getElementById(
+  'taskBtn'
+).onclick = async () => {
 
   if(!taskAd)
     return alert('Task ad not ready');
@@ -634,6 +687,8 @@ document.getElementById('taskBtn')
 
       xp += 10;
 
+      await giveReferralCommission(10);
+
       update();
 
       alert('Task Completed');
@@ -643,8 +698,9 @@ document.getElementById('taskBtn')
   }catch(e){}
 };
 
-document.getElementById('dailyBtn')
-.onclick = async () => {
+document.getElementById(
+  'dailyBtn'
+).onclick = async () => {
 
   let now = Date.now();
 
@@ -695,6 +751,8 @@ document.getElementById('dailyBtn')
 
         xp += 900;
 
+        await giveReferralCommission(900);
+
         lastDaily = now;
 
         dailyProgress = 0;
@@ -727,10 +785,13 @@ document.getElementById('dailyBtn')
 
 };
 
-document.getElementById('joinBtn')
-.onclick = () => {
+document.getElementById(
+  'joinBtn'
+).onclick = async () => {
 
   xp += 5;
+
+  await giveReferralCommission(5);
 
   update();
 
@@ -745,8 +806,9 @@ document.getElementById('joinBtn')
 
 };
 
-document.getElementById('copyBtn')
-.onclick = () => {
+document.getElementById(
+  'copyBtn'
+).onclick = () => {
 
   let input =
   document.getElementById(
@@ -761,8 +823,9 @@ document.getElementById('copyBtn')
 
 };
 
-document.getElementById('withdrawBtn')
-.onclick = async () => {
+document.getElementById(
+  'withdrawBtn'
+).onclick = async () => {
 
   let amount =
   parseInt(
@@ -802,15 +865,15 @@ document.getElementById('withdrawBtn')
     .insert({
 
       telegram_id:
-        telegramUser.id.toString(),
+      telegramUser.id.toString(),
 
       amount:amount,
 
       wallet:
-        wallet +
-        " (" +
-        method +
-        ")"
+      wallet +
+      " (" +
+      method +
+      ")"
 
     });
 
