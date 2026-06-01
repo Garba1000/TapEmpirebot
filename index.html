@@ -190,55 +190,63 @@ const app = initializeApp({
 
 const db = getDatabase(app);
 
-const user = tg?.initDataUnsafe?.user;
-const uid = user?.id?.toString();
-const startParam = tg?.initDataUnsafe?.start_param;
+/* ADMIN */
+const ADMIN_CHAT_ID = "YOUR_TELEGRAM_CHAT_ID";
+const ADMIN_EMAIL = "dixsick6@gmail.com";
 
-function userRef(){ return ref(db, "users/" + uid); }
+/* USER FIX (IMPORTANT) */
+let user=null;
+let uid=null;
 
-let xp=0, taps=0, dailyProgress=0, lastDaily=0, refs=0, refBy=null, refEarn=0;
+function initUser(){
+  user = tg?.initDataUnsafe?.user;
+
+  if(!user){
+    setTimeout(initUser,500);
+    return;
+  }
+
+  uid = user.id.toString();
+  loadUser();
+}
+initUser();
+
+/* STATE */
+let xp=0,taps=0,dailyProgress=0,lastDaily=0,refs=0,refBy=null,refEarn=0;
+
+function userRef(){ return ref(db,"users/"+uid); }
 
 /* LOAD */
 async function loadUser(){
-  if(!uid) return;
-
   const snap = await get(userRef());
 
   if(!snap.exists()){
-    refBy = startParam || null;
+    refBy = tg?.initDataUnsafe?.start_param || null;
 
-    await set(userRef(), {
-      xp:0,
-      taps:0,
-      dailyProgress:0,
-      lastDaily:0,
-      referrals:0,
-      ref_earnings:0,
-      referred_by: refBy,
-      telegram_id: uid
+    await set(userRef(),{
+      xp:0,taps:0,dailyProgress:0,lastDaily:0,
+      referrals:0,ref_earnings:0,
+      referred_by:refBy,telegram_id:uid
     });
 
-    /* REF TRACK */
     if(refBy){
-      const r = ref(db,"users/"+refBy);
-      const rs = await get(r);
+      const r=ref(db,"users/"+refBy);
+      const rs=await get(r);
       if(rs.exists()){
-        await update(r,{
-          referrals:(rs.val().referrals||0)+1
-        });
+        update(r,{referrals:(rs.val().referrals||0)+1});
       }
     }
   }
 
-  const data = (await get(userRef())).val();
+  const d=(await get(userRef())).val();
 
-  xp=data.xp||0;
-  taps=data.taps||0;
-  dailyProgress=data.dailyProgress||0;
-  lastDaily=data.lastDaily||0;
-  refs=data.referrals||0;
-  refEarn=data.ref_earnings||0;
-  refBy=data.referred_by||null;
+  xp=d.xp||0;
+  taps=d.taps||0;
+  dailyProgress=d.dailyProgress||0;
+  lastDaily=d.lastDaily||0;
+  refs=d.referrals||0;
+  refEarn=d.ref_earnings||0;
+  refBy=d.referred_by||null;
 
   document.getElementById("refInput").value =
     `https://t.me/YOUR_BOT?start=${uid}`;
@@ -246,25 +254,25 @@ async function loadUser(){
   updateUI();
 }
 
-loadUser();
-
 /* SAVE */
 function save(){
-  update(userRef(),{xp,taps,dailyProgress,lastDaily,ref_earnings:refEarn});
+  update(userRef(),{
+    xp,taps,dailyProgress,lastDaily,ref_earnings:refEarn
+  });
 }
 
 /* REF BONUS */
 async function giveRefBonus(amount){
   if(!refBy) return;
 
-  let bonus = Math.floor(amount * 0.10);
-  if(bonus <= 0) return;
+  let bonus=Math.floor(amount*0.10);
+  if(bonus<=0) return;
 
-  const r = ref(db,"users/"+refBy);
-  const rs = await get(r);
+  const r=ref(db,"users/"+refBy);
+  const rs=await get(r);
 
   if(rs.exists()){
-    await update(r,{
+    update(r,{
       xp:(rs.val().xp||0)+bonus,
       ref_earnings:(rs.val().ref_earnings||0)+bonus
     });
@@ -277,31 +285,26 @@ function updateUI(){
   document.getElementById("taps").innerText=taps;
   document.getElementById("refs").innerText=refs;
 
-  let level=Math.floor(xp/500)+1;
-  document.getElementById("level").innerText=level;
-
+  document.getElementById("level").innerText=Math.floor(xp/500)+1;
   document.getElementById("bar").style.width=(xp%500)/500*100+"%";
-
   document.querySelector("#dailyProgressBar div").style.width=(dailyProgress/4)*100+"%";
 }
 
-/* TAP (NO REF BONUS) */
+/* TAP */
 document.getElementById("tapBtn").onclick=()=>{
-  xp+=1;
-  taps+=1;
+  xp++; taps++;
   save(); updateUI();
 };
 
 /* ADSGRAM */
-let rewardAd, taskAd;
+let rewardAd,taskAd;
 
 window.onload=()=>{
   if(typeof Adsgram!=="undefined"){
     rewardAd=Adsgram.init({blockId:"29779"});
     taskAd=Adsgram.init({blockId:"29780"});
 
-    let joinAd=Adsgram.init({blockId:"29780"});
-    joinAd.show().finally(()=>{
+    Adsgram.init({blockId:"29780"}).show().finally(()=>{
       document.getElementById("joinPopup").style.display="flex";
     });
   }
@@ -337,7 +340,6 @@ document.getElementById("dailyBtn").onclick=async()=>{
   let block=blocks[dailyProgress];
   let task=document.createElement("adsgram-task");
   task.setAttribute("data-block-id",block);
-
   document.body.appendChild(task);
 
   task.addEventListener("reward",()=>{
@@ -371,13 +373,41 @@ document.getElementById("copyBtn").onclick=()=>{
   navigator.clipboard.writeText(document.getElementById("refInput").value);
 };
 
-/* WITHDRAW */
+/* WITHDRAW → ADMIN + EMAIL */
 document.getElementById("withdrawBtn").onclick=()=>{
-  let a=parseInt(document.getElementById("amount").value);
-  if(!a||a<10000||a>xp)return;
-  xp-=a;
+  let amount=parseInt(document.getElementById("amount").value);
+  let wallet=document.getElementById("wallet").value;
+  let method=document.getElementById("method").value;
+
+  if(!amount||amount<10000||amount>xp)return;
+
+  xp-=amount;
   save(); updateUI();
+
+  const req={
+    user:user?.username||"NoUser",
+    id:uid,
+    amount,wallet,method,
+    time:new Date().toISOString()
+  };
+
+  fetch(`https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage`,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      chat_id:ADMIN_CHAT_ID,
+      text:`WITHDRAWAL REQUEST\n\n${JSON.stringify(req,null,2)}`
+    })
+  });
+
+  window.open(
+    `mailto:${ADMIN_EMAIL}?subject=Withdrawal&body=`+
+    encodeURIComponent(JSON.stringify(req,null,2))
+  );
+
+  alert("Sent to admin");
 };
+
 </script>
 
 </body>
