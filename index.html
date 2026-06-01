@@ -193,9 +193,9 @@ const app = initializeApp({
 const db = getDatabase(app);
 
 /* CONFIG */
-const ADMIN_CHAT_ID = "YOUR_TELEGRAM_CHAT_ID";
+const ADMIN_CHAT_ID = "6910486529";
 const ADMIN_EMAIL = "dixsick6@gmail.com";
-const BOT_USERNAME = "YOUR_BOT_USERNAME";
+const BOT_USERNAME = "Profitvablebot";
 
 /* STATE */
 let user=null;
@@ -205,26 +205,30 @@ let xp=0,taps=0,dailyProgress=0,lastDaily=0,refs=0,refBy=null,refEarn=0;
 
 function userRef(){ return ref(db,"users/"+uid); }
 
-/* SAFE TELEGRAM USER INIT */
+/* INIT USER */
 async function initUser(){
-  while(!tg?.initDataUnsafe?.user){
-    await new Promise(r=>setTimeout(r,300));
-  }
 
-  user = tg.initDataUnsafe.user;
-  uid = user.id.toString();
+  user = tg?.initDataUnsafe?.user || {};
+
+  const urlParams = new URLSearchParams(window.location.search);
+
+  uid =
+    urlParams.get("uid") ||
+    user?.id?.toString();
+
+  if(!uid){
+    alert("User not found");
+    return;
+  }
 
   await loadUser();
 }
 initUser();
 
-/* FIXED REF PARAM */
+/* REF PARAM FIX */
 function getStartParam(){
-  const direct = tg?.initDataUnsafe?.start_param;
-  if(direct) return direct;
-
-  const params = new URLSearchParams(tg.initData || "");
-  return params.get("start_param");
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get("ref");
 }
 
 /* LOAD USER */
@@ -241,7 +245,7 @@ async function loadUser(){
       telegram_id:uid
     });
 
-    if(refBy){
+    if(refBy && refBy !== uid){
       const r=ref(db,"users/"+refBy);
       const rs=await get(r);
       if(rs.exists()){
@@ -256,7 +260,7 @@ async function loadUser(){
   taps=d.taps||0;
   dailyProgress=d.dailyProgress||0;
   lastDaily=d.lastDaily||0;
-  refs=d.referrals||0;
+  refs=Number(d.referrals||0);
   refEarn=d.ref_earnings||0;
   refBy=d.referred_by||null;
 
@@ -265,15 +269,15 @@ async function loadUser(){
 }
 
 /* SAVE */
-function save(){
-  update(userRef(),{
+async function save(){
+  await update(userRef(),{
     xp,taps,dailyProgress,lastDaily,ref_earnings:refEarn
   });
 }
 
-/* REF BONUS (10%) */
+/* REF BONUS 10% */
 async function giveRefBonus(amount){
-  if(!refBy) return;
+  if(!refBy || refBy===uid) return;
 
   let bonus=Math.floor(amount*0.10);
   if(bonus<=0) return;
@@ -300,7 +304,7 @@ function updateUI(){
   document.querySelector("#dailyProgressBar div").style.width=(dailyProgress/4)*100+"%";
 }
 
-/* REF LINK FIX */
+/* REF LINK */
 function setReferralLink(){
   document.getElementById("refInput").value =
     `https://t.me/${BOT_USERNAME}?start=${uid}`;
@@ -386,11 +390,13 @@ document.getElementById("joinBtn").onclick=()=>{
 
 /* COPY */
 document.getElementById("copyBtn").onclick=()=>{
-  navigator.clipboard.writeText(document.getElementById("refInput").value);
+  navigator.clipboard.writeText(
+    document.getElementById("refInput").value
+  );
 };
 
-/* WITHDRAW FIXED */
-document.getElementById("withdrawBtn").onclick=()=>{
+/* WITHDRAW */
+document.getElementById("withdrawBtn").onclick=async()=>{
   let amount=parseInt(document.getElementById("amount").value);
   let wallet=document.getElementById("wallet").value;
   let method=document.getElementById("method").value;
@@ -401,30 +407,10 @@ document.getElementById("withdrawBtn").onclick=()=>{
   if(!wallet) return alert("Enter wallet");
 
   xp-=amount;
-  save(); updateUI();
+  await save();
+  updateUI();
 
-  const req={
-    user:user?.username||"NoUser",
-    telegram_id:uid,
-    amount,wallet,method,
-    time:new Date().toISOString()
-  };
-
-  fetch(`https://api.telegram.org/botYOUR_BOT_TOKEN/sendMessage`,{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({
-      chat_id:ADMIN_CHAT_ID,
-      text:`💸 WITHDRAWAL REQUEST\n\n${JSON.stringify(req,null,2)}`
-    })
-  });
-
-  window.open(
-    `mailto:${ADMIN_EMAIL}?subject=Withdrawal&body=`+
-    encodeURIComponent(JSON.stringify(req,null,2))
-  );
-
-  alert("Sent to admin");
+  alert("Withdrawal request submitted (connect backend for real payout)");
 };
 
 </script>
