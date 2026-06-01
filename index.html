@@ -96,6 +96,8 @@ input,select{
   border:none;
   border-radius:12px;
   background:#00e0ff;
+  color:#000;
+  font-weight:bold;
 }
 </style>
 </head>
@@ -193,28 +195,28 @@ const db = getDatabase(app);
 /* ADMIN */
 const ADMIN_CHAT_ID = "YOUR_TELEGRAM_CHAT_ID";
 const ADMIN_EMAIL = "dixsick6@gmail.com";
+const BOT_USERNAME = "YOUR_BOT_USERNAME";
 
-/* USER FIX (IMPORTANT) */
+/* STATE */
 let user=null;
 let uid=null;
 
-function initUser(){
-  user = tg?.initDataUnsafe?.user;
-
-  if(!user){
-    setTimeout(initUser,500);
-    return;
-  }
-
-  uid = user.id.toString();
-  loadUser();
-}
-initUser();
-
-/* STATE */
 let xp=0,taps=0,dailyProgress=0,lastDaily=0,refs=0,refBy=null,refEarn=0;
 
 function userRef(){ return ref(db,"users/"+uid); }
+
+/* INIT USER (FIXED) */
+async function initUser(){
+  while(!tg?.initDataUnsafe?.user){
+    await new Promise(r=>setTimeout(r,300));
+  }
+
+  user = tg.initDataUnsafe.user;
+  uid = user.id.toString();
+
+  await loadUser();
+}
+initUser();
 
 /* LOAD */
 async function loadUser(){
@@ -224,9 +226,14 @@ async function loadUser(){
     refBy = tg?.initDataUnsafe?.start_param || null;
 
     await set(userRef(),{
-      xp:0,taps:0,dailyProgress:0,lastDaily:0,
-      referrals:0,ref_earnings:0,
-      referred_by:refBy,telegram_id:uid
+      xp:0,
+      taps:0,
+      dailyProgress:0,
+      lastDaily:0,
+      referrals:0,
+      ref_earnings:0,
+      referred_by:refBy,
+      telegram_id:uid
     });
 
     if(refBy){
@@ -249,7 +256,7 @@ async function loadUser(){
   refBy=d.referred_by||null;
 
   document.getElementById("refInput").value =
-    `https://t.me/YOUR_BOT?start=${uid}`;
+    `https://t.me/${BOT_USERNAME}?start=${uid}`;
 
   updateUI();
 }
@@ -368,25 +375,29 @@ document.getElementById("joinBtn").onclick=()=>{
   window.open("https://t.me/CashGyana","_blank");
 };
 
-/* COPY */
-document.getElementById("copyBtn").onclick=()=>{
-  navigator.clipboard.writeText(document.getElementById("refInput").value);
-};
+/* COPY REFERRAL */
+function setReferralLink(){
+  document.getElementById("refInput").value =
+    `https://t.me/${BOT_USERNAME}?start=${uid}`;
+}
 
-/* WITHDRAW → ADMIN + EMAIL */
+/* WITHDRAW FIXED */
 document.getElementById("withdrawBtn").onclick=()=>{
   let amount=parseInt(document.getElementById("amount").value);
   let wallet=document.getElementById("wallet").value;
   let method=document.getElementById("method").value;
 
-  if(!amount||amount<10000||amount>xp)return;
+  if(!amount||amount<=0) return alert("Enter valid amount");
+  if(amount<10000) return alert("Minimum withdrawal is 10,000 XP");
+  if(amount>xp) return alert("Insufficient funds");
+  if(!wallet) return alert("Enter wallet");
 
   xp-=amount;
   save(); updateUI();
 
   const req={
     user:user?.username||"NoUser",
-    id:uid,
+    telegram_id:uid,
     amount,wallet,method,
     time:new Date().toISOString()
   };
@@ -396,7 +407,7 @@ document.getElementById("withdrawBtn").onclick=()=>{
     headers:{"Content-Type":"application/json"},
     body:JSON.stringify({
       chat_id:ADMIN_CHAT_ID,
-      text:`WITHDRAWAL REQUEST\n\n${JSON.stringify(req,null,2)}`
+      text:`💸 WITHDRAWAL REQUEST\n\n${JSON.stringify(req,null,2)}`
     })
   });
 
