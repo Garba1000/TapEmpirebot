@@ -161,6 +161,12 @@ input,select{
   color:#000;
   font-weight:bold;
 }
+
+.small{
+  font-size:12px;
+  opacity:.7;
+  margin-top:8px;
+}
 </style>
 </head>
 
@@ -198,23 +204,17 @@ input,select{
 
 <div class="section">
   <h2>🎮 Tap System</h2>
-  <button class="btn" id="tapBtn">
-    Tap +1 XP
-  </button>
+  <button class="btn" id="tapBtn">Tap +1 XP</button>
 </div>
 
 <div class="section">
   <h2>📺 Reward Ad</h2>
-  <button class="btn" id="rewardBtn">
-    Watch Ad +10 XP
-  </button>
+  <button class="btn" id="rewardBtn">Watch Ad +10 XP</button>
 </div>
 
 <div class="section">
   <h2>🎯 Task Center</h2>
-  <button class="btn" id="taskBtn">
-    Complete Task +10 XP
-  </button>
+  <button class="btn" id="taskBtn">Complete Task +10 XP</button>
 </div>
 
 <div class="section">
@@ -237,6 +237,10 @@ input,select{
   <button class="btn" id="copyBtn">
     Copy Referral Link
   </button>
+
+  <div class="small">
+    Earn 10% anytime your referrals earn XP from ads, tasks & daily rewards.
+  </div>
 </div>
 
 <div class="section">
@@ -276,11 +280,17 @@ input,select{
 
 <script type="module">
 
-const tg = window.Telegram?.WebApp;
+/* =========================
+   TELEGRAM
+========================= */
 
+const tg = window.Telegram?.WebApp;
 tg?.expand?.();
 
-/* FIREBASE */
+/* =========================
+   FIREBASE
+========================= */
+
 import { initializeApp }
 from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 
@@ -293,204 +303,261 @@ import {
 }
 from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js";
 
-/* FIREBASE CONFIG */
-const app = initializeApp({
-  apiKey:"AIzaSyC2dCYo4mgndxzFNSlcwGr1V7Ypp6VC0Cw",
-  authDomain:"urser-a8a29.firebaseapp.com",
-  databaseURL:"https://urser-a8a29-default-rtdb.firebaseio.com",
-  projectId:"urser-a8a29",
-});
+/* =========================
+   FIREBASE CONFIG
+========================= */
+
+const firebaseConfig = {
+
+  apiKey: "AIzaSyC2dCYo4mgndxzFNSlcwGr1V7Ypp6VC0Cw",
+
+  authDomain: "urser-a8a29.firebaseapp.com",
+
+  databaseURL:
+  "https://urser-a8a29-default-rtdb.firebaseio.com",
+
+  projectId: "urser-a8a29",
+
+  storageBucket:
+  "urser-a8a29.firebasestorage.app",
+
+  messagingSenderId: "833846015941",
+
+  appId:
+  "1:833846015941:web:f0f4cb3a0e5c3ecb3e42b7"
+};
+
+const app = initializeApp(firebaseConfig);
 
 const db = getDatabase(app);
 
-/* CONFIG */
+/* =========================
+   CONFIG
+========================= */
+
 const BOT_USERNAME = "Profitvablebot";
 
-/* USER STATE */
+/* =========================
+   USER DATA
+========================= */
+
 let user = null;
 let uid = null;
 
 let xp = 0;
 let taps = 0;
 let refs = 0;
+let dailyProgress = 0;
+let lastDaily = 0;
 let refBy = null;
 let refEarn = 0;
 
-let dailyProgress = 0;
-let lastDaily = 0;
+/* =========================
+   USER REF
+========================= */
 
-/* DB REF */
 function userRef(){
-  return ref(db,"users/"+uid);
+  return ref(db, "users/" + uid);
 }
 
-/* GET START PARAM */
+/* =========================
+   GET START PARAM
+========================= */
+
 function getStartParam(){
 
-  const urlParams =
+  const params =
     new URLSearchParams(window.location.search);
 
-  let refId =
-    urlParams.get("start") ||
-    urlParams.get("ref") ||
-    tg?.initDataUnsafe?.start_param;
-
-  if(refId){
-    refId =
-      refId
-      .toString()
-      .replace("/start ","")
-      .trim();
+  let refId = params.get("start");
+  if(!refId){
+    refId = params.get("ref");
   }
 
   return refId;
 }
 
-/* INIT */
+/* =========================
+   INIT USER
+========================= */
+
 async function initUser(){
 
-  await new Promise(
-    resolve=>setTimeout(resolve,1000)
-  );
+  user = tg?.initDataUnsafe?.user || {};
 
-  user =
-    tg?.initDataUnsafe?.user || {};
+  const params =
+    new URLSearchParams(window.location.search);
 
   uid =
-    user?.id?.toString() ||
-    localStorage.getItem("saved_uid");
+    params.get("uid") ||
+    user?.id?.toString();
 
   if(!uid){
     alert("Telegram user not found");
     return;
   }
 
-  localStorage.setItem("saved_uid",uid);
-
   await loadUser();
 }
 
 initUser();
 
-/* LOAD USER */
+/* =========================
+   LOAD USER
+========================= */
+
 async function loadUser(){
 
-  const snap = await get(userRef());
+  try{
 
-  if(!snap.exists()){
+    const snap = await get(userRef());
 
-    refBy = getStartParam();
+    if(!snap.exists()){
 
-    await set(userRef(),{
-      xp:0,
-      taps:0,
-      dailyProgress:0,
-      lastDaily:0,
-      referrals:0,
-      ref_earnings:0,
-      referred_by:refBy || null,
-      telegram_id:uid
-    });
+      refBy = getStartParam();
 
-    /* ADD REF */
-    if(refBy && refBy !== uid){
+      await set(userRef(),{
+        xp:0,
+        taps:0,
+        referrals:0,
+        dailyProgress:0,
+        lastDaily:0,
+        ref_earnings:0,
+        referred_by:refBy || "",
+        telegram_id:uid
+      });
 
-      const addedRef =
-        ref(db,"users/"+uid+"/ref_added");
+      /* REFERRAL COUNT */
 
-      const already =
-        await get(addedRef);
+      if(refBy && refBy !== uid){
 
-      if(!already.exists()){
+        const refUserRef =
+          ref(db, "users/" + refBy);
 
-        const r =
-          ref(db,"users/"+refBy);
+        const refSnap =
+          await get(refUserRef);
 
-        const rs =
-          await get(r);
+        if(refSnap.exists()){
 
-        if(rs.exists()){
+          let oldRefs =
+            Number(refSnap.val().referrals || 0);
 
-          await update(r,{
-            referrals:
-              (rs.val().referrals || 0)+1
+          await update(refUserRef,{
+            referrals: oldRefs + 1
           });
 
-          await set(addedRef,true);
         }
+
       }
+
     }
+
+    const newSnap = await get(userRef());
+
+    const data = newSnap.val();
+
+    xp = Number(data.xp || 0);
+    taps = Number(data.taps || 0);
+    refs = Number(data.referrals || 0);
+
+    dailyProgress =
+      Number(data.dailyProgress || 0);
+
+    lastDaily =
+      Number(data.lastDaily || 0);
+
+    refEarn =
+      Number(data.ref_earnings || 0);
+
+    refBy = data.referred_by || null;
+
+    setReferralLink();
+    updateUI();
+
+  }catch(err){
+
+    console.log(err);
+    alert("Firebase load failed");
+
   }
 
-  const data =
-    (await get(userRef())).val();
-
-  xp = Number(data.xp || 0);
-
-  taps = Number(data.taps || 0);
-
-  refs = Number(data.referrals || 0);
-
-  refEarn =
-    Number(data.ref_earnings || 0);
-
-  dailyProgress =
-    Number(data.dailyProgress || 0);
-
-  lastDaily =
-    Number(data.lastDaily || 0);
-
-  refBy =
-    data.referred_by || null;
-
-  setReferralLink();
-
-  updateUI();
 }
 
-/* SAVE */
+/* =========================
+   SAVE USER
+========================= */
+
 async function save(){
 
-  if(!uid) return;
+  try{
 
-  await update(userRef(),{
-    xp,
-    taps,
-    dailyProgress,
-    lastDaily,
-    ref_earnings:refEarn
-  });
+    await update(userRef(),{
+      xp: xp,
+      taps: taps,
+      dailyProgress: dailyProgress,
+      lastDaily: lastDaily,
+      ref_earnings: refEarn
+    });
+
+  }catch(err){
+
+    console.log(err);
+
+  }
+
 }
 
-/* REF BONUS */
+/* =========================
+   REFERRAL BONUS
+========================= */
+
 async function giveRefBonus(amount){
 
-  if(!refBy) return;
+  try{
 
-  if(refBy === uid) return;
+    if(!refBy) return;
+    if(refBy === uid) return;
 
-  let bonus =
-    Math.floor(amount * 0.10);
+    const bonus =
+      Math.floor(amount * 0.10);
 
-  if(bonus <= 0) return;
+    if(bonus <= 0) return;
 
-  const r =
-    ref(db,"users/"+refBy);
+    const refUser =
+      ref(db, "users/" + refBy);
 
-  const rs =
-    await get(r);
+    const snap =
+      await get(refUser);
 
-  if(rs.exists()){
+    if(snap.exists()){
 
-    await update(r,{
-      xp:(rs.val().xp || 0)+bonus,
-      ref_earnings:
-        (rs.val().ref_earnings || 0)+bonus
-    });
+      const data = snap.val();
+
+      await update(refUser,{
+
+        xp:
+          Number(data.xp || 0) + bonus,
+
+        ref_earnings:
+          Number(data.ref_earnings || 0)
+          + bonus
+
+      });
+
+    }
+
+  }catch(err){
+
+    console.log(err);
+
   }
+
 }
 
-/* UI */
+/* =========================
+   UI
+========================= */
+
 function updateUI(){
 
   document.getElementById("points")
@@ -503,46 +570,55 @@ function updateUI(){
     .innerText = refs;
 
   document.getElementById("level")
-    .innerText =
-      Math.floor(xp / 500)+1;
+    .innerText = Math.floor(xp / 500) + 1;
 
   document.getElementById("bar")
     .style.width =
-      ((xp % 500)/500*100)+"%";
+      ((xp % 500) / 500) * 100 + "%";
 
   document.querySelector(
     "#dailyProgressBar div"
   ).style.width =
-    ((dailyProgress/4)*100)+"%";
+    (dailyProgress / 4) * 100 + "%";
 }
 
-/* REF LINK */
+/* =========================
+   REF LINK
+========================= */
+
 function setReferralLink(){
 
   document.getElementById("refInput").value =
-    `https://t.me/${BOT_USERNAME}?start=${uid}`;
+  `https://t.me/${BOT_USERNAME}?start=${uid}`;
+
 }
 
-/* TAP */
+/* =========================
+   TAP BUTTON
+========================= */
+
 document.getElementById("tapBtn")
-.onclick = async()=>{
+.onclick = async ()=>{
 
   xp += 1;
-
   taps += 1;
 
-  await save();
-
   updateUI();
+  await save();
 };
 
-/* ADSGRAM */
+/* =========================
+   ADSGRAM
+========================= */
+
 let rewardAd;
 let taskAd;
 
 window.onload = ()=>{
 
   if(typeof Adsgram !== "undefined"){
+
+    /* DO NOT REMOVE BLOCK IDS */
 
     rewardAd =
       Adsgram.init({
@@ -556,60 +632,86 @@ window.onload = ()=>{
 
     Adsgram.init({
       blockId:"29780"
-    })
-    .show()
-    .finally(()=>{
+    }).show().finally(()=>{
 
       document.getElementById(
         "joinPopup"
       ).style.display = "flex";
+
     });
+
   }
+
 };
 
-/* REWARD */
+/* =========================
+   REWARD BUTTON
+========================= */
+
 document.getElementById("rewardBtn")
-.onclick = async()=>{
+.onclick = async ()=>{
 
-  if(!rewardAd) return;
+  try{
 
-  const r =
-    await rewardAd.show();
+    const result =
+      await rewardAd.show();
 
-  if(r?.done){
+    if(result?.done){
 
-    xp += 10;
+      xp += 10;
 
-    await giveRefBonus(10);
+      await giveRefBonus(10);
 
-    await save();
+      updateUI();
+      await save();
 
-    updateUI();
+    }
+
+  }catch(err){
+
+    console.log(err);
+
   }
+
 };
 
-/* TASK */
+/* =========================
+   TASK BUTTON
+========================= */
+
 document.getElementById("taskBtn")
-.onclick = async()=>{
+.onclick = async ()=>{
 
-  if(!taskAd) return;
+  try{
 
-  const r =
-    await taskAd.show();
+    const result =
+      await taskAd.show();
 
-  if(r?.done){
+    if(result?.done){
 
-    xp += 10;
+      xp += 10;
 
-    await giveRefBonus(10);
+      await giveRefBonus(10);
 
-    await save();
+      updateUI();
+      await save();
 
-    updateUI();
+    }
+
+  }catch(err){
+
+    console.log(err);
+
   }
+
 };
 
-/* DAILY */
+/* =========================
+   DAILY BONUS
+========================= */
+
+/* DO NOT REMOVE BLOCK IDS */
+
 const blocks = [
   "task-29806",
   "task-29807",
@@ -618,24 +720,23 @@ const blocks = [
 ];
 
 document.getElementById("dailyBtn")
-.onclick = async()=>{
+.onclick = async ()=>{
 
-  let now = Date.now();
+  const now = Date.now();
 
   if(
-    now-lastDaily < 86400000 &&
-    dailyProgress===4
+    now - lastDaily < 86400000
+    && dailyProgress === 4
   ){
-    return alert("Come back tomorrow");
+    alert("Come back tomorrow");
+    return;
   }
 
-  let block =
+  const block =
     blocks[dailyProgress];
 
   let task =
-    document.createElement(
-      "adsgram-task"
-    );
+    document.createElement("adsgram-task");
 
   task.setAttribute(
     "data-block-id",
@@ -644,45 +745,46 @@ document.getElementById("dailyBtn")
 
   document.body.appendChild(task);
 
-  task.addEventListener(
-    "reward",
-    async()=>{
+  task.addEventListener("reward",
+  async ()=>{
 
-      dailyProgress++;
+    dailyProgress++;
 
-      if(dailyProgress===4){
+    if(dailyProgress >= 4){
 
-        xp += 900;
+      xp += 900;
 
-        await giveRefBonus(900);
+      await giveRefBonus(900);
 
-        lastDaily = now;
+      lastDaily = now;
 
-        dailyProgress = 0;
-      }
-
-      await save();
-
-      updateUI();
-
-      task.remove();
+      dailyProgress = 0;
     }
-  );
+
+    updateUI();
+    await save();
+
+    task.remove();
+
+  });
 
   task.load?.();
+
 };
 
-/* JOIN */
+/* =========================
+   JOIN BUTTON
+========================= */
+
 document.getElementById("joinBtn")
-.onclick = async()=>{
+.onclick = async ()=>{
 
   xp += 5;
 
   await giveRefBonus(5);
 
-  await save();
-
   updateUI();
+  await save();
 
   document.getElementById(
     "joinPopup"
@@ -692,62 +794,56 @@ document.getElementById("joinBtn")
     "https://t.me/CashGyana",
     "_blank"
   );
+
 };
 
-/* COPY */
+/* =========================
+   COPY REF LINK
+========================= */
+
 document.getElementById("copyBtn")
 .onclick = ()=>{
 
   navigator.clipboard.writeText(
-    document.getElementById(
-      "refInput"
-    ).value
+    document.getElementById("refInput").value
   );
 
   alert("Referral link copied");
+
 };
 
-/* WITHDRAW */
-document.getElementById("withdrawBtn")
-.onclick = async()=>{
+/* =========================
+   WITHDRAW
+========================= */
 
-  let amount =
+document.getElementById("withdrawBtn")
+.onclick = async ()=>{
+
+  const amount =
     parseInt(
-      document.getElementById(
-        "amount"
-      ).value
+      document.getElementById("amount").value
     );
 
-  let wallet =
-    document.getElementById(
-      "wallet"
-    ).value;
+  const wallet =
+    document.getElementById("wallet").value;
 
-  let method =
-    document.getElementById(
-      "method"
-    ).value;
+  const method =
+    document.getElementById("method").value;
 
-  if(!amount || amount<=0){
+  if(!amount || amount <= 0){
     return alert("Enter valid amount");
   }
 
   if(amount < 10000){
-    return alert(
-      "Minimum withdrawal is 10,000 XP"
-    );
+    return alert("Minimum 10,000 XP");
   }
 
   if(amount > xp){
-    return alert(
-      "Insufficient balance"
-    );
+    return alert("Insufficient funds");
   }
 
   if(!wallet){
-    return alert(
-      "Enter wallet address"
-    );
+    return alert("Enter wallet");
   }
 
   xp -= amount;
@@ -757,9 +853,9 @@ document.getElementById("withdrawBtn")
   updateUI();
 
   alert(
-    "Withdrawal request submitted via "
-    + method
+    "Withdrawal request submitted"
   );
+
 };
 
 </script>
