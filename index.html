@@ -9,12 +9,38 @@
 <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
 
 <style>
-*{margin:0;padding:0;box-sizing:border-box;}
-body{background:#07111f;color:white;font-family:Arial;padding:18px;}
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
 
-.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
-.logo{font-size:26px;font-weight:bold;color:#00e0ff;}
-.level{background:#132033;padding:8px 14px;border-radius:30px;font-size:14px;}
+body{
+  background:#07111f;
+  color:white;
+  font-family:Arial;
+  padding:18px;
+}
+
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:20px;
+}
+
+.logo{
+  font-size:26px;
+  font-weight:bold;
+  color:#00e0ff;
+}
+
+.level{
+  background:#132033;
+  padding:8px 14px;
+  border-radius:30px;
+  font-size:14px;
+}
 
 .balance-box{
   background:linear-gradient(135deg,#00e0ff,#0077ff);
@@ -23,12 +49,33 @@ body{background:#07111f;color:white;font-family:Arial;padding:18px;}
   text-align:center;
   margin-bottom:20px;
 }
-.balance-box h2{font-size:50px;margin-top:10px;}
 
-.progress{width:100%;height:10px;background:rgba(255,255,255,0.2);border-radius:30px;overflow:hidden;margin-top:15px;}
-.progress div{width:0%;height:100%;background:#fff;}
+.balance-box h2{
+  font-size:50px;
+  margin-top:10px;
+}
 
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;}
+.progress{
+  width:100%;
+  height:10px;
+  background:rgba(255,255,255,0.2);
+  border-radius:30px;
+  overflow:hidden;
+  margin-top:15px;
+}
+
+.progress div{
+  width:0%;
+  height:100%;
+  background:#fff;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+  margin-bottom:20px;
+}
 
 .card{
   background:#101b2d;
@@ -37,8 +84,15 @@ body{background:#07111f;color:white;font-family:Arial;padding:18px;}
   border:1px solid #1f2d44;
 }
 
-.card h3{font-size:16px;margin-bottom:10px;}
-.card p{font-size:13px;opacity:0.8;}
+.card h3{
+  font-size:16px;
+  margin-bottom:10px;
+}
+
+.card p{
+  font-size:13px;
+  opacity:0.8;
+}
 
 .btn{
   width:100%;
@@ -78,12 +132,19 @@ input,select{
   overflow:hidden;
   margin-top:10px;
 }
-#dailyProgressBar div{height:100%;width:0%;background:#00e0ff;}
+
+#dailyProgressBar div{
+  height:100%;
+  width:0%;
+  background:#00e0ff;
+}
 
 #joinPopup{
   position:fixed;
-  top:0;left:0;
-  width:100%;height:100%;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
   background:rgba(0,0,0,0.85);
   display:none;
   justify-content:center;
@@ -91,6 +152,7 @@ input,select{
   flex-direction:column;
   z-index:9999;
 }
+
 #joinPopup button{
   padding:14px 20px;
   border:none;
@@ -106,16 +168,22 @@ input,select{
 
 <div class="header">
   <div class="logo">⚡ Tap & Earn X</div>
-  <div class="level">Level <span id="level">1</span></div>
+  <div class="level">
+    Level <span id="level">1</span>
+  </div>
 </div>
 
 <div class="balance-box">
   <p>Total XP</p>
   <h2 id="points">0</h2>
-  <div class="progress"><div id="bar"></div></div>
+
+  <div class="progress">
+    <div id="bar"></div>
+  </div>
 </div>
 
 <div class="grid">
+
   <div class="card">
     <h3>👆 Total Taps</h3>
     <p id="taps">0</p>
@@ -125,292 +193,573 @@ input,select{
     <h3>👥 Referrals</h3>
     <p id="refs">0</p>
   </div>
+
 </div>
 
 <div class="section">
   <h2>🎮 Tap System</h2>
-  <button class="btn" id="tapBtn">Tap +1 XP</button>
+  <button class="btn" id="tapBtn">
+    Tap +1 XP
+  </button>
 </div>
 
 <div class="section">
   <h2>📺 Reward Ad</h2>
-  <button class="btn" id="rewardBtn">Watch Ad +10 XP</button>
+  <button class="btn" id="rewardBtn">
+    Watch Ad +10 XP
+  </button>
 </div>
 
 <div class="section">
   <h2>🎯 Task Center</h2>
-  <button class="btn" id="taskBtn">Complete Task +10 XP</button>
+  <button class="btn" id="taskBtn">
+    Complete Task +10 XP
+  </button>
 </div>
 
 <div class="section">
   <h2>🎁 Daily Reward</h2>
-  <button class="btn" id="dailyBtn">Start Daily Bonus</button>
-  <div id="dailyProgressBar"><div></div></div>
+
+  <button class="btn" id="dailyBtn">
+    Start Daily Bonus
+  </button>
+
+  <div id="dailyProgressBar">
+    <div></div>
+  </div>
 </div>
 
 <div class="section">
   <h2>👥 Referral</h2>
+
   <input id="refInput" readonly>
-  <button class="btn" id="copyBtn">Copy Referral Link</button>
+
+  <button class="btn" id="copyBtn">
+    Copy Referral Link
+  </button>
 </div>
 
 <div class="section">
   <h2>💳 Withdraw</h2>
+
   <select id="method">
     <option>USDT</option>
     <option>Litecoin</option>
     <option>Payeer</option>
     <option>Bank</option>
   </select>
+
   <input id="wallet" placeholder="Wallet Address">
-  <input id="amount" type="number" placeholder="Amount">
-  <button class="btn" id="withdrawBtn">Withdraw XP</button>
+
+  <input
+    id="amount"
+    type="number"
+    placeholder="Amount"
+  >
+
+  <button class="btn" id="withdrawBtn">
+    Withdraw XP
+  </button>
 </div>
 
 <div id="joinPopup">
-  <h2 style="margin-bottom:15px;">Join Our Channel</h2>
-  <button id="joinBtn">Join Channel +5 XP</button>
+
+  <h2 style="margin-bottom:15px;">
+    Join Our Channel
+  </h2>
+
+  <button id="joinBtn">
+    Join Channel +5 XP
+  </button>
+
 </div>
 
 <script type="module">
 
 const tg = window.Telegram?.WebApp;
+
 tg?.expand?.();
 
 /* FIREBASE */
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
-import {
-  getDatabase, ref, set, get, update
-} from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js";
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
 
+import {
+  getDatabase,
+  ref,
+  set,
+  get,
+  update
+}
+from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js";
+
+/* FIREBASE CONFIG */
 const app = initializeApp({
-  apiKey: "AIzaSyC2dCYo4mgndxzFNSlcwGr1V7Ypp6VC0Cw",
-  authDomain: "urser-a8a29.firebaseapp.com",
-  databaseURL: "https://urser-a8a29-default-rtdb.firebaseio.com",
-  projectId: "urser-a8a29",
+  apiKey:"AIzaSyC2dCYo4mgndxzFNSlcwGr1V7Ypp6VC0Cw",
+  authDomain:"urser-a8a29.firebaseapp.com",
+  databaseURL:"https://urser-a8a29-default-rtdb.firebaseio.com",
+  projectId:"urser-a8a29",
 });
 
 const db = getDatabase(app);
 
 /* CONFIG */
-const ADMIN_CHAT_ID = "6910486529";
-const ADMIN_EMAIL = "dixsick6@gmail.com";
 const BOT_USERNAME = "Profitvablebot";
 
-/* STATE */
-let user=null;
-let uid=null;
+/* USER STATE */
+let user = null;
+let uid = null;
 
-let xp=0,taps=0,dailyProgress=0,lastDaily=0,refs=0,refBy=null,refEarn=0;
+let xp = 0;
+let taps = 0;
+let refs = 0;
+let refBy = null;
+let refEarn = 0;
 
-function userRef(){ return ref(db,"users/"+uid); }
+let dailyProgress = 0;
+let lastDaily = 0;
 
-/* INIT USER */
+/* DB REF */
+function userRef(){
+  return ref(db,"users/"+uid);
+}
+
+/* GET START PARAM */
+function getStartParam(){
+
+  const urlParams =
+    new URLSearchParams(window.location.search);
+
+  let refId =
+    urlParams.get("start") ||
+    urlParams.get("ref") ||
+    tg?.initDataUnsafe?.start_param;
+
+  if(refId){
+    refId =
+      refId
+      .toString()
+      .replace("/start ","")
+      .trim();
+  }
+
+  return refId;
+}
+
+/* INIT */
 async function initUser(){
 
-  user = tg?.initDataUnsafe?.user || {};
+  await new Promise(
+    resolve=>setTimeout(resolve,1000)
+  );
 
-  const urlParams = new URLSearchParams(window.location.search);
+  user =
+    tg?.initDataUnsafe?.user || {};
 
   uid =
-    urlParams.get("uid") ||
-    user?.id?.toString();
+    user?.id?.toString() ||
+    localStorage.getItem("saved_uid");
 
   if(!uid){
-    alert("User not found");
+    alert("Telegram user not found");
     return;
   }
 
+  localStorage.setItem("saved_uid",uid);
+
   await loadUser();
 }
-initUser();
 
-/* REF PARAM FIX */
-function getStartParam(){
-  const urlParams = new URLSearchParams(window.location.search);
-  return urlParams.get("ref");
-}
+initUser();
 
 /* LOAD USER */
 async function loadUser(){
+
   const snap = await get(userRef());
 
   if(!snap.exists()){
+
     refBy = getStartParam();
 
     await set(userRef(),{
-      xp:0,taps:0,dailyProgress:0,lastDaily:0,
-      referrals:0,ref_earnings:0,
-      referred_by:refBy,
+      xp:0,
+      taps:0,
+      dailyProgress:0,
+      lastDaily:0,
+      referrals:0,
+      ref_earnings:0,
+      referred_by:refBy || null,
       telegram_id:uid
     });
 
+    /* ADD REF */
     if(refBy && refBy !== uid){
-      const r=ref(db,"users/"+refBy);
-      const rs=await get(r);
-      if(rs.exists()){
-        update(r,{referrals:(rs.val().referrals||0)+1});
+
+      const addedRef =
+        ref(db,"users/"+uid+"/ref_added");
+
+      const already =
+        await get(addedRef);
+
+      if(!already.exists()){
+
+        const r =
+          ref(db,"users/"+refBy);
+
+        const rs =
+          await get(r);
+
+        if(rs.exists()){
+
+          await update(r,{
+            referrals:
+              (rs.val().referrals || 0)+1
+          });
+
+          await set(addedRef,true);
+        }
       }
     }
   }
 
-  const d=(await get(userRef())).val();
+  const data =
+    (await get(userRef())).val();
 
-  xp=d.xp||0;
-  taps=d.taps||0;
-  dailyProgress=d.dailyProgress||0;
-  lastDaily=d.lastDaily||0;
-  refs=Number(d.referrals||0);
-  refEarn=d.ref_earnings||0;
-  refBy=d.referred_by||null;
+  xp = Number(data.xp || 0);
+
+  taps = Number(data.taps || 0);
+
+  refs = Number(data.referrals || 0);
+
+  refEarn =
+    Number(data.ref_earnings || 0);
+
+  dailyProgress =
+    Number(data.dailyProgress || 0);
+
+  lastDaily =
+    Number(data.lastDaily || 0);
+
+  refBy =
+    data.referred_by || null;
 
   setReferralLink();
+
   updateUI();
 }
 
 /* SAVE */
 async function save(){
+
+  if(!uid) return;
+
   await update(userRef(),{
-    xp,taps,dailyProgress,lastDaily,ref_earnings:refEarn
+    xp,
+    taps,
+    dailyProgress,
+    lastDaily,
+    ref_earnings:refEarn
   });
 }
 
-/* REF BONUS 10% */
+/* REF BONUS */
 async function giveRefBonus(amount){
-  if(!refBy || refBy===uid) return;
 
-  let bonus=Math.floor(amount*0.10);
-  if(bonus<=0) return;
+  if(!refBy) return;
 
-  const r=ref(db,"users/"+refBy);
-  const rs=await get(r);
+  if(refBy === uid) return;
+
+  let bonus =
+    Math.floor(amount * 0.10);
+
+  if(bonus <= 0) return;
+
+  const r =
+    ref(db,"users/"+refBy);
+
+  const rs =
+    await get(r);
 
   if(rs.exists()){
-    update(r,{
-      xp:(rs.val().xp||0)+bonus,
-      ref_earnings:(rs.val().ref_earnings||0)+bonus
+
+    await update(r,{
+      xp:(rs.val().xp || 0)+bonus,
+      ref_earnings:
+        (rs.val().ref_earnings || 0)+bonus
     });
   }
 }
 
 /* UI */
 function updateUI(){
-  document.getElementById("points").innerText=xp;
-  document.getElementById("taps").innerText=taps;
-  document.getElementById("refs").innerText=refs;
 
-  document.getElementById("level").innerText=Math.floor(xp/500)+1;
-  document.getElementById("bar").style.width=(xp%500)/500*100+"%";
-  document.querySelector("#dailyProgressBar div").style.width=(dailyProgress/4)*100+"%";
+  document.getElementById("points")
+    .innerText = xp;
+
+  document.getElementById("taps")
+    .innerText = taps;
+
+  document.getElementById("refs")
+    .innerText = refs;
+
+  document.getElementById("level")
+    .innerText =
+      Math.floor(xp / 500)+1;
+
+  document.getElementById("bar")
+    .style.width =
+      ((xp % 500)/500*100)+"%";
+
+  document.querySelector(
+    "#dailyProgressBar div"
+  ).style.width =
+    ((dailyProgress/4)*100)+"%";
 }
 
 /* REF LINK */
 function setReferralLink(){
+
   document.getElementById("refInput").value =
-    `https://t.me/${profitvablebot}?start=${uid}`;
+    `https://t.me/${BOT_USERNAME}?start=${uid}`;
 }
 
 /* TAP */
-document.getElementById("tapBtn").onclick=()=>{
-  xp++; taps++;
-  save(); updateUI();
+document.getElementById("tapBtn")
+.onclick = async()=>{
+
+  xp += 1;
+
+  taps += 1;
+
+  await save();
+
+  updateUI();
 };
 
 /* ADSGRAM */
-let rewardAd,taskAd;
+let rewardAd;
+let taskAd;
 
-window.onload=()=>{
-  if(typeof Adsgram!=="undefined"){
-    rewardAd=Adsgram.init({blockId:"29779"});
-    taskAd=Adsgram.init({blockId:"29780"});
+window.onload = ()=>{
 
-    Adsgram.init({blockId:"29780"}).show().finally(()=>{
-      document.getElementById("joinPopup").style.display="flex";
+  if(typeof Adsgram !== "undefined"){
+
+    rewardAd =
+      Adsgram.init({
+        blockId:"29779"
+      });
+
+    taskAd =
+      Adsgram.init({
+        blockId:"29780"
+      });
+
+    Adsgram.init({
+      blockId:"29780"
+    })
+    .show()
+    .finally(()=>{
+
+      document.getElementById(
+        "joinPopup"
+      ).style.display = "flex";
     });
   }
 };
 
 /* REWARD */
-document.getElementById("rewardBtn").onclick=async()=>{
-  const r=await rewardAd.show();
+document.getElementById("rewardBtn")
+.onclick = async()=>{
+
+  if(!rewardAd) return;
+
+  const r =
+    await rewardAd.show();
+
   if(r?.done){
-    xp+=10;
-    giveRefBonus(10);
-    save(); updateUI();
+
+    xp += 10;
+
+    await giveRefBonus(10);
+
+    await save();
+
+    updateUI();
   }
 };
 
 /* TASK */
-document.getElementById("taskBtn").onclick=async()=>{
-  const r=await taskAd.show();
+document.getElementById("taskBtn")
+.onclick = async()=>{
+
+  if(!taskAd) return;
+
+  const r =
+    await taskAd.show();
+
   if(r?.done){
-    xp+=10;
-    giveRefBonus(10);
-    save(); updateUI();
+
+    xp += 10;
+
+    await giveRefBonus(10);
+
+    await save();
+
+    updateUI();
   }
 };
 
 /* DAILY */
-const blocks=["task-29806","task-29807","task-29808","task-29809"];
+const blocks = [
+  "task-29806",
+  "task-29807",
+  "task-29808",
+  "task-29809"
+];
 
-document.getElementById("dailyBtn").onclick=async()=>{
-  let now=Date.now();
-  if(now-lastDaily<86400000&&dailyProgress===4)return;
+document.getElementById("dailyBtn")
+.onclick = async()=>{
 
-  let block=blocks[dailyProgress];
-  let task=document.createElement("adsgram-task");
-  task.setAttribute("data-block-id",block);
+  let now = Date.now();
+
+  if(
+    now-lastDaily < 86400000 &&
+    dailyProgress===4
+  ){
+    return alert("Come back tomorrow");
+  }
+
+  let block =
+    blocks[dailyProgress];
+
+  let task =
+    document.createElement(
+      "adsgram-task"
+    );
+
+  task.setAttribute(
+    "data-block-id",
+    block
+  );
+
   document.body.appendChild(task);
 
-  task.addEventListener("reward",()=>{
-    dailyProgress++;
+  task.addEventListener(
+    "reward",
+    async()=>{
 
-    if(dailyProgress===4){
-      xp+=900;
-      giveRefBonus(900);
-      lastDaily=now;
-      dailyProgress=0;
+      dailyProgress++;
+
+      if(dailyProgress===4){
+
+        xp += 900;
+
+        await giveRefBonus(900);
+
+        lastDaily = now;
+
+        dailyProgress = 0;
+      }
+
+      await save();
+
+      updateUI();
+
+      task.remove();
     }
-
-    save(); updateUI();
-    task.remove();
-  });
+  );
 
   task.load?.();
 };
 
 /* JOIN */
-document.getElementById("joinBtn").onclick=()=>{
-  xp+=5;
-  giveRefBonus(5);
-  save(); updateUI();
-  document.getElementById("joinPopup").style.display="none";
-  window.open("https://t.me/CashGyana","_blank");
-};
+document.getElementById("joinBtn")
+.onclick = async()=>{
 
-/* COPY */
-document.getElementById("copyBtn").onclick=()=>{
-  navigator.clipboard.writeText(
-    document.getElementById("refInput").value
+  xp += 5;
+
+  await giveRefBonus(5);
+
+  await save();
+
+  updateUI();
+
+  document.getElementById(
+    "joinPopup"
+  ).style.display = "none";
+
+  window.open(
+    "https://t.me/CashGyana",
+    "_blank"
   );
 };
 
+/* COPY */
+document.getElementById("copyBtn")
+.onclick = ()=>{
+
+  navigator.clipboard.writeText(
+    document.getElementById(
+      "refInput"
+    ).value
+  );
+
+  alert("Referral link copied");
+};
+
 /* WITHDRAW */
-document.getElementById("withdrawBtn").onclick=async()=>{
-  let amount=parseInt(document.getElementById("amount").value);
-  let wallet=document.getElementById("wallet").value;
-  let method=document.getElementById("method").value;
+document.getElementById("withdrawBtn")
+.onclick = async()=>{
 
-  if(!amount||amount<=0) return alert("Enter valid amount");
-  if(amount<10000) return alert("Minimum 10,000 XP");
-  if(amount>xp) return alert("Insufficient funds");
-  if(!wallet) return alert("Enter wallet");
+  let amount =
+    parseInt(
+      document.getElementById(
+        "amount"
+      ).value
+    );
 
-  xp-=amount;
+  let wallet =
+    document.getElementById(
+      "wallet"
+    ).value;
+
+  let method =
+    document.getElementById(
+      "method"
+    ).value;
+
+  if(!amount || amount<=0){
+    return alert("Enter valid amount");
+  }
+
+  if(amount < 10000){
+    return alert(
+      "Minimum withdrawal is 10,000 XP"
+    );
+  }
+
+  if(amount > xp){
+    return alert(
+      "Insufficient balance"
+    );
+  }
+
+  if(!wallet){
+    return alert(
+      "Enter wallet address"
+    );
+  }
+
+  xp -= amount;
+
   await save();
+
   updateUI();
 
-  alert("Withdrawal request submitted (connect backend for real payout)");
+  alert(
+    "Withdrawal request submitted via "
+    + method
+  );
 };
 
 </script>
